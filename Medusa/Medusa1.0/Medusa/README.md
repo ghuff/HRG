@@ -27,5 +27,8 @@ findAntennaLocation is called from MedusaMain.pde. This function:
 * This function partially creates the limitations of the tracking system, as rotating the antenna leads the big boxes to overlap, causing a failure.
 
 ### AnalyzeAntennaDimensions()
-* When AnalyzeBoxes() determines that an antenna has likely been found, AnalyzeAntennaDimensions() verifies that the antenna is the correct size (within co
+* When AnalyzeBoxes() determines that an antenna has likely been found, AnalyzeAntennaDimensions() verifies that the antenna is the correct size (within a confidence limit), and then uses the location of the boxes to determine the location of a feedline
+* First Generates a Hash Table containing the real xyz coordinates of the Neopixels. 
+* Ensures that there are four Neopixels, and calculates vectors between each of the Neopixels to use to find the height and width of the antenna. 
+
 
