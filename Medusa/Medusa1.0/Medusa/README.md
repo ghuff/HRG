@@ -11,7 +11,19 @@ findAntennaLocation is called from MedusaMain.pde. This function:
     * Neopixels
     * rectangles
 * Since Java passes objects by reference, *Neopixels* and *rectangles* may be modified in any function called from here. 
-*Calls AnalyzeBoxes() to  
-### AnalyzeAntennaDimensions()
+* Calls AnalyzeBoxes()
+* If AnalyzeBoxes() returns one, calls AnalyzeAntennaDimensions()
 
 ### AnalyzeBoxes()
+* Boxes are drawn on the main window before this function is called
+* Counts the number of Boxes in the ArrayList *rectangles* (*rectangles* is passed as a parameter to AnalyzeBoxes())
+* Two primary cases will work: 
+   1. 6 or more rectangles
+      * AnalyzeBoxes() tries to find 2 big rectangles which each fully contain two little recangles and do not overlap 
+   2. 5 rectangles
+      * AnalyzeBoxes() looks for 4 small rectangles within 1 big rectangle.
+* If either of the aforementioned cases is met, AnalyzeBoxes() returns 1.
+* Otherwise, analyze boxes returns 0, indicating failure
+### AnalyzeAntennaDimensions()
+
+
