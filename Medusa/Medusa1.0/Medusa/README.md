@@ -25,6 +25,7 @@ findAntennaLocation is called from MedusaMain.pde. This function:
 * If either of the aforementioned cases is met, AnalyzeBoxes() returns 1 indicating success.
 * Otherwise, analyze boxes returns 0, indicating failure.
 * This function partially creates the limitations of the tracking system, as rotating the antenna leads the big boxes to overlap, causing a failure.
+
 ### AnalyzeAntennaDimensions()
 * When AnalyzeBoxes() determines that an antenna has likely been found, AnalyzeAntennaDimensions() verifies that the antenna is the correct size (within co
 
