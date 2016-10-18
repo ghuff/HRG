@@ -11,7 +11,7 @@ findAntennaLocation is called from MedusaMain.pde. This function:
     * Neopixels
     * rectangles
 * Since JAVA passes objects by reference, *Neopixels* and *rectangles* may be modified in any function called from here. 
-* Calls AnalyzeBoxes()
+*Calls AnalyzeBoxes() to  
 ### AnalyzeAntennaDimensions()
 
 ### AnalyzeBoxes()
