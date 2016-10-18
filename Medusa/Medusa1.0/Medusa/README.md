@@ -10,7 +10,7 @@ findAntennaLocation is called from MedusaMain.pde. This function:
 * Creates two ArrayLists of Rectangles which are used to pass tracking information between the Kinect, the MainWindow display, and the AnalyzeBoxes() function. 
     * Neopixels
     * rectangles
-* Since JAVA passes objects by reference, *Neopixels* and *rectangles* may be modified in any function called from here. 
+* Since Java passes objects by reference, *Neopixels* and *rectangles* may be modified in any function called from here. 
 *Calls AnalyzeBoxes() to  
 ### AnalyzeAntennaDimensions()
 
