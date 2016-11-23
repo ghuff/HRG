@@ -16,13 +16,11 @@ oDesign=oProject.InsertDesign("HFSS","HFSS_Script_Test", "DrivenModal", "")
 
 
 
-
+#createRelativeCS(oDesign, 0,10,20,1,2,3,3,2,1,"mm","TestCS")
 #Test drawing functions 
-patch_antenna(oDesign, 2.5e9, 50, 10, 4.2, "mil", "Test_Patch")
+rectangular_patch_antenna(oDesign, 2.5e9, 50, 62, 4.2, "mil", "Test_Patch")
 
-
-
-binarySubtraction(oDesign,"Test_Cylinder","Test_Patch",False)
+#binarySubtraction(oDesign,"Test_Cylinder","Test_Patch",False)
 
 
 #drawCircle(oDesign, 0, 0, 0, 50, "mm", "Z", "Test_Cir", 0)
