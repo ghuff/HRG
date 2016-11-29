@@ -8,23 +8,6 @@ def openHFSS():
 	return [oAnsys, oDesktop]
 
 
-def assignBoundaryMaterial(oDesign, Object_Name, material):
-	
-	Boundary_Name="Name: Bound_"+Object_Name
-	#print("Assigning Boundary to: " ,Object_Name+"\n")
-	oModule = oDesign.GetModule("BoundarySetup")
-	oModule.AssignFiniteCond(
-	[
-		Boundary_Name,
-		"Objects:="		    , [Object_Name],
-		"UseMaterial:="		, True,
-		"Material:="		, material,
-		"UseThickness:="	, False,
-		"Roughness:="		, "0um",
-		"InfGroundPlane:="	, False
-	])
-
-
 #oEditor [object], start_coords,length,width [floats], axis, material, name [strings]   
 def drawRectangle(oDesign, start_x, start_y, start_z, height, width, units, axis, name, Transparency):
 	#print("Creating " ,name)
@@ -175,13 +158,71 @@ def drawCircle(oDesign,  center_x, center_y, center_z, radius, units, axis, name
 		"SolveInside:="		    , True
 	])
 
+def drawSphere(oDesign, center_x, center_y, center_z, radius, units, material, name, Transparency):
+	#print("Creating " ,name)
+	oEditor  = oDesign.SetActiveEditor("3D Modeler")
+	
+	SolveInside=True
+	#PEC is the only case I can think of where this would need to be false; Add other cases if needed
+	if(material is "pec"):
+		SolveInside=False
+
+	xStr     = '%f' %(center_x) + units
+	yStr     = '%f' %(center_y) + units
+	zStr     = '%f' %(center_z) + units
+	
+	radStr	 = '%f' %(radius)   + units
+	material = "\"" +material   + "\""
+
+
+
+	oEditor.CreateSphere(
+	[
+		"NAME:SphereParameters",
+		"XCenter:="		, xStr,
+		"YCenter:="		, yStr,
+		"ZCenter:="		, zStr,
+		"Radius:="		, radStr,
+	], 
+	[
+		"NAME:Attributes",
+		"Name:="		, name,
+		"Flags:="		, "",
+		"Color:="		, "(132 132 193)",
+		"Transparency:="	, Transparency,		"PartCoordinateSystem:=", "Global",
+		"UDMId:="		, "",
+		"MaterialValue:="	, material,
+		"SolveInside:="		, SolveInside
+	])
+
+
 def binarySubtraction(oDesign, blank_parts, tool_parts, KeepOriginals):
+	
+	if isinstance(blank_parts,str):
+		blank_string=blank_parts
+	elif all(isinstance(element,str) for element in blank_parts):
+		blank_string=""	
+		for element in blank_parts:
+			blank_string=blank_string+element+","
+		blank_string=blank_string[:-1]	
+	else: 
+		raise TypeError #Need string or array of strings
+	if isinstance(tool_parts,str):
+		tool_string=tool_parts
+	elif all(isinstance(element,str) for element in tool_parts):
+		tool_string=""	
+		for element in tool_parts:
+			tool_string=tool_string+element+","
+		tool_string=tool_string[:-1]	
+	else: 
+		raise TypeError #Need string or array of strings
+	print(tool_string)
 	oEditor  = oDesign.SetActiveEditor("3D Modeler")
 	oEditor.Subtract(
 	[
 		"NAME:Selections",
-		"Blank Parts:="		, blank_parts,
-		"Tool Parts:="		, tool_parts
+		"Blank Parts:="		,blank_string,
+		"Tool Parts:="		,tool_string
 	], 
 	[
 		"NAME:SubtractParameters",
@@ -260,4 +301,23 @@ def assignExcitation(oDesign, name, NumModes, Renormalize, Alignment, Deembed):
 		"ReporterFilter:="	, [True],
 		"UseAnalyticAlignment:=", False
 	])
+
+
+def assignBoundaryMaterial(oDesign, Object_Name, material):
+	
+	Boundary_Name="Name: Bound_"+Object_Name
+	#print("Assigning Boundary to: " ,Object_Name+"\n")
+	oModule = oDesign.GetModule("BoundarySetup")
+	oModule.AssignFiniteCond(
+	[
+		Boundary_Name,
+		"Objects:="		    , [Object_Name],
+		"UseMaterial:="		, True,
+		"Material:="		, material,
+		"UseThickness:="	, False,
+		"Roughness:="		, "0um",
+		"InfGroundPlane:="	, False
+	])
+
+
 
