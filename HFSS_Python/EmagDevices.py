@@ -18,7 +18,7 @@ def substrate(oDesign, length, width, height, units, material, name):
 	GndName=name+"_GndPlane"
 	drawRectangle(oDesign, -length/2, -width/2, -height/2, width, length, units, "Z", GndName,.5)
 	assignBoundaryMaterial(oDesign, GndName, "Copper")
-
+	return GndName
 #Draws a length of 50 Ohm Coax  
 #Dimensions are Hardcoded for now
 def coax_50_Ohm(oDesign, center_x, center_y, length, substrate_height, name):
@@ -45,18 +45,18 @@ def coax_50_Ohm(oDesign, center_x, center_y, length, substrate_height, name):
 	drawCylinder(oDesign, center_x, center_y, -substrate_height/2-length, probe_outer_radius, -pec_cap_length, units, "Z", "pec",pec_name,0 )
 	binarySubtraction(oDesign, probe_outer_name, probe_inner_name, True)
 
-	wave_port_name=name+"wave_port"
+	wave_port_name=name+"_wave_port"
 	print(wave_port_name)
 	drawCircle(oDesign, center_x, center_y, -substrate_height/2-length, probe_outer_radius, units, "Z", wave_port_name,.9)
 	binarySubtraction(oDesign, wave_port_name, probe_inner_name, True)
 	assignExcitation(oDesign, wave_port_name, 1, True, False, False)
-	return wave_port_name
+	return wave_port_name, [probe_inner_name, probe_outer_name, pec_name]
 
 #This function designs a half wave patch antenna 
 #Matches the antenna to a quarter wave coax feedline
 #Can only handle 50 Ohm Feedline Impedance
 #Can handle length units in mm or mills, other units will cause error
-def rectangular_patch_antenna(oDesign, operation_frequency, feedline_impedance, substrate_height, substrate_permittivity, units, name):
+def rectangular_patch_antenna(oDesign, operation_frequency, feedline_impedance, substrate_height, substrate_permittivity, substrate_material, units, name):
 	print("Designing",name,"\n")
 	
 	
@@ -103,7 +103,7 @@ def rectangular_patch_antenna(oDesign, operation_frequency, feedline_impedance, 
 	print('PatchLength', patch_length,' ',units)
 	substrate_length=patch_length+substrate_clearance
 	substrate_width=patch_width+substrate_clearance
-	substrate(oDesign, substrate_length, substrate_width, substrate_height, units, "Rogers RT/duroid 5880 (tm)", substrate_name)
+	GndName=substrate(oDesign, substrate_length, substrate_width, substrate_height, units, substrate_material, substrate_name)
 
 	#Draw Patch
 	drawRectangle(oDesign, -patch_length/2, -patch_width/2, substrate_height/2, patch_width, patch_length, units, "Z", name,0)
@@ -132,11 +132,10 @@ def rectangular_patch_antenna(oDesign, operation_frequency, feedline_impedance, 
 	
 	print('probe_x: ',probe_x)
 	coax_name=name+"_feedline"
-	coax_50_Ohm(oDesign, probe_x,probe_y,feedline_length,substrate_height,coax_name)
+	[excitation, coax_names]=coax_50_Ohm(oDesign, probe_x,probe_y,feedline_length,substrate_height,coax_name)
 	#Subtract probe from Substrate, Ground plane, and antenna
-	binarySubtraction(oDesign, substrate_name, coax_name+"_inner",True)
-	binarySubtraction(oDesign, substrate_name+"_GndPlane", coax_name+"_inner",True)
-	binarySubtraction(oDesign, substrate_name+"_GndPlane", coax_name+"_outer",True)
-	binarySubtraction(oDesign, name, coax_name+"_inner",True)
+	binarySubtraction(oDesign, [name, substrate_name, GndName],coax_names[0],True)
+	binarySubtraction(oDesign,GndName,coax_names[1],True)
 
-	
+	return excitation, [name, substrate_name, GndName]+coax_names
+
