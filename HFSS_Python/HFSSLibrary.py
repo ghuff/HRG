@@ -11,7 +11,7 @@ def openHFSS():
 def assignBoundaryMaterial(oDesign, Object_Name, material):
 	
 	Boundary_Name="Name: Bound_"+Object_Name
-	print("Assigning Boundary to: " ,Object_Name+"\n")
+	#print("Assigning Boundary to: " ,Object_Name+"\n")
 	oModule = oDesign.GetModule("BoundarySetup")
 	oModule.AssignFiniteCond(
 	[
@@ -27,7 +27,7 @@ def assignBoundaryMaterial(oDesign, Object_Name, material):
 
 #oEditor [object], start_coords,length,width [floats], axis, material, name [strings]   
 def drawRectangle(oDesign, start_x, start_y, start_z, height, width, units, axis, name, Transparency):
-	print("Creating " ,name)
+	#print("Creating " ,name)
 	oEditor = oDesign.SetActiveEditor("3D Modeler")
 
 	#HFSS Takes most arguments as strings: <value>+<"units"> e.g "42mil"
@@ -63,7 +63,7 @@ def drawRectangle(oDesign, start_x, start_y, start_z, height, width, units, axis
 
 	#oEditor [object], start_coords,dimensions [floats], units, material, name [strings]   
 def drawBox(oDesign, start_x, start_y, start_z, Xsize, Ysize, Zsize, units, material, name, Transparency):
-	print("Creating " ,name)
+	#print("Creating " ,name)
 	oEditor = oDesign.SetActiveEditor("3D Modeler")
 
 	SolveInside=True
@@ -106,7 +106,7 @@ def drawBox(oDesign, start_x, start_y, start_z, Xsize, Ysize, Zsize, units, mate
 		])
 
 def drawCylinder(oDesign, center_x, center_y, center_z, radius, length, units, axis, material, name, Transparency):
-	print("Creating " ,name)
+	#print("Creating " ,name)
 	oEditor  = oDesign.SetActiveEditor("3D Modeler")
 	
 	SolveInside=True
@@ -140,15 +140,14 @@ def drawCylinder(oDesign, center_x, center_y, center_z, radius, length, units, a
 		"Name:="		, name,
 		"Flags:="		, "",
 		"Color:="		, "(132 132 193)",
-		"Transparency:="	, Transparency,
-		"PartCoordinateSystem:=", "Global",
+		"Transparency:="	, Transparency,		"PartCoordinateSystem:=", "Global",
 		"UDMId:="		, "",
 		"MaterialValue:="	, material,
 		"SolveInside:="		, SolveInside
 	])
 
 def drawCircle(oDesign,  center_x, center_y, center_z, radius, units, axis, name, Transparency):
-	print("Creating " ,name)
+	#print("Creating " ,name)
 	oEditor  = oDesign.SetActiveEditor("3D Modeler")
 
 	xStr     = '%f' %(center_x) + units
@@ -233,3 +232,32 @@ def createRelativeCS(oDesign, OriginX, OriginY, OriginZ, XaxisXvec, XaxisYvec, X
 		"NAME:Attributes",
 		"Name:="		 , name
 	])
+
+
+# string name, int numModes, Boolean: Renormalize, Alignment, Deembed, 	
+		#Default:  1, True, False, False
+#Modes>1 will need to be implemented with a for loop probably. Not sure how to do 
+#Use integration line for multiple modes
+def assignExcitation(oDesign, name, NumModes, Renormalize, Alignment, Deembed):
+	oModule = oDesign.GetModule("BoundarySetup")
+	oModule.AssignWavePort(
+	[
+		"NAME:"+name,
+		"Objects:="		, [name],
+		"NumModes:="		, NumModes,
+		"RenormalizeAllTerminals:=", Renormalize,
+		"UseLineModeAlignment:=", Alignment,
+		"DoDeembed:="		, Deembed,
+		[
+			"NAME:Modes",
+			[
+				"NAME:Mode1",
+				"ModeNum:="		, 1,
+				"UseIntLine:="		, False
+			]
+		],
+		"ShowReporterFilter:="	, False,
+		"ReporterFilter:="	, [True],
+		"UseAnalyticAlignment:=", False
+	])
+
