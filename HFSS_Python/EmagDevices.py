@@ -12,17 +12,19 @@ mils_to_mm=1/mm_to_mils
 
 
 #Creates a box of the size of the substrate made of FR4 With Copper Ground Plane
-def substrate(oDesign, length, width, height, units, material, name):
-	drawBox(oDesign, -length/2, -width/2, -height/2, length, width, height,units, material, name,.8)
+def substrate(oDesign, subX, subY, subZ, units, material,cs, name):
+	names=["","","", "subX", "subY", "", name]
+	drawBox(oDesign, -subX/2, -subY/2, -subZ/2, subX,subY, subZ,units, material, cs, names,.8)
 
 	GndName=name+"_GndPlane"
-	drawRectangle(oDesign, -length/2, -width/2, -height/2, width, length, units, "Z", GndName,.5)
+	names=["","","", "subX", "subY", GndName]
+	drawRectangle(oDesign,-subX/2, -subY/2, -subZ/2, subX, subY,  units, "Z", cs, names,.5)
 	assignBoundaryMaterial(oDesign, GndName, "Copper")
 	return GndName
 #Draws a length of 50 Ohm Coax  
 #Dimensions are Hardcoded for now
-def coax_50_Ohm(oDesign, center_x, center_y, length, substrate_height, name):
-	print("Drawing ",name,"\n")
+def coax_50_Ohm(oDesign, center_x, center_y, length, substrate_height, cs, name):
+#	print("Drawing ",name,"\n")
 
 	units="mm"
 	
@@ -32,38 +34,44 @@ def coax_50_Ohm(oDesign, center_x, center_y, length, substrate_height, name):
 	probe_outer_radius=2.05
 	pec_name=name+"_PEC_Cap"
 	dielectric_material="Teflon (tm)"
-	pec_cap_length=1
-
+	pec_cap_length=.5
 
 	#Draw Probe_Inner
-	drawCylinder(oDesign, center_x, center_y, substrate_height/2, probe_inner_radius, -length-substrate_height, units, "Z", "Copper",probe_inner_name,0)
+	names=["probe_x", "probe_y", "","","",probe_inner_name]
+	drawCylinder(oDesign, center_x, center_y, substrate_height/2, probe_inner_radius, -length-substrate_height, units, "Z", "Copper",cs, names,0)
 
+	#['coax_x','coax_y','cylinder1']
 	#Draw Probe_Outer
-	drawCylinder(oDesign, center_x, center_y, -substrate_height/2, probe_outer_radius, -length, units, "Z", dielectric_material,probe_outer_name,.75)
+	names=["probe_x", "probe_y", "","","",probe_outer_name]
+	drawCylinder(oDesign, center_x, center_y, -substrate_height/2, probe_outer_radius, -length, units, "Z", dielectric_material,cs, names,.75)
+	assignFaceBoundaryMaterial(oDesign, probe_outer_name, int(getFaceIDs(oDesign,probe_outer_name)[0]),"Copper")
 	
 	#Draw PEC Cap
-	drawCylinder(oDesign, center_x, center_y, -substrate_height/2-length, probe_outer_radius, -pec_cap_length, units, "Z", "pec",pec_name,0 )
+	#Draw Probe_Outer
+	names=["probe_x", "probe_y", "","","",pec_name]
+	drawCylinder(oDesign, center_x, center_y, -substrate_height/2-length, probe_outer_radius, -pec_cap_length, units, "Z", "pec",cs, names,0 )
 	binarySubtraction(oDesign, probe_outer_name, probe_inner_name, True)
 
 	wave_port_name=name+"_wave_port"
-	print(wave_port_name)
-	drawCircle(oDesign, center_x, center_y, -substrate_height/2-length, probe_outer_radius, units, "Z", wave_port_name,.9)
+	names=["probe_x", "probe_y", "","",wave_port_name]
+	drawCircle(oDesign, center_x, center_y, -substrate_height/2-length, probe_outer_radius, units, "Z",cs, names,.9)
 	binarySubtraction(oDesign, wave_port_name, probe_inner_name, True)
 	assignExcitation(oDesign, wave_port_name, 1, True, False, False)
+			
 	return wave_port_name, [probe_inner_name, probe_outer_name, pec_name]
 
 #This function designs a half wave patch antenna 
 #Matches the antenna to a quarter wave coax feedline
 #Can only handle 50 Ohm Feedline Impedance
 #Can handle length units in mm or mills, other units will cause error
-def rectangular_patch_antenna(oDesign, operation_frequency, feedline_impedance, substrate_height, substrate_permittivity, substrate_material, units, name):
-	print("Designing",name,"\n")
+def design_rectangular_patch(oDesign, operation_frequency, feedline_impedance, substrate_height, substrate_permittivity, substrate_material, units, cs, name):
+#	print("Designing",name,"\n")
 	
 	
 
 
 	if(units is "mil"):
-		print('converting mil to mm 1')
+	#	print('converting mil to mm 1')
 		substrate_height=substrate_height*mils_to_mm
 		units="mm"
 
@@ -103,10 +111,11 @@ def rectangular_patch_antenna(oDesign, operation_frequency, feedline_impedance, 
 	print('PatchLength', patch_length,' ',units)
 	substrate_length=patch_length+substrate_clearance
 	substrate_width=patch_width+substrate_clearance
-	GndName=substrate(oDesign, substrate_length, substrate_width, substrate_height, units, substrate_material, substrate_name)
+	GndName=substrate(oDesign, substrate_length, substrate_width, substrate_height, units, substrate_material, cs, substrate_name)
 
 	#Draw Patch
-	drawRectangle(oDesign, -patch_length/2, -patch_width/2, substrate_height/2, patch_width, patch_length, units, "Z", name,0)
+	names=["", "","","patchL","patchW",name]
+	drawRectangle(oDesign, -patch_length/2, -patch_width/2, substrate_height/2, patch_length, patch_width, units, "Z", cs, names,0)
 	assignBoundaryMaterial(oDesign,name,"Copper")
 
 	#####Locating Resonant Feedline#####
@@ -132,10 +141,35 @@ def rectangular_patch_antenna(oDesign, operation_frequency, feedline_impedance, 
 	
 	print('probe_x: ',probe_x)
 	coax_name=name+"_feedline"
-	[excitation, coax_names]=coax_50_Ohm(oDesign, probe_x,probe_y,feedline_length,substrate_height,coax_name)
+	[excitation, coax_names]=coax_50_Ohm(oDesign, probe_x,probe_y,feedline_length,substrate_height,cs, coax_name)
 	#Subtract probe from Substrate, Ground plane, and antenna
 	binarySubtraction(oDesign, [name, substrate_name, GndName],coax_names[0],True)
 	binarySubtraction(oDesign,GndName,coax_names[1],True)
 
 	return excitation, [name, substrate_name, GndName]+coax_names
 
+
+def rectangular_patch(oDesign, patch_length, patch_width, probe_x, probe_y, substrate_length, substrate_width, substrate_height, substrate_material,units,cs, name):
+
+	#print("Drawing",name,"\n")
+
+	feedline_length=10
+	substrate_name=name+"_substrate"
+
+	#print('patch width ', patch_width, units)
+	
+	GndName=substrate(oDesign, substrate_length, substrate_width, substrate_height, units, substrate_material, cs, substrate_name)
+
+	#Draw Patch
+	names=["", "","","patchL","patchW",name]
+	drawRectangle(oDesign, -patch_length/2, -patch_width/2, substrate_height/2, patch_length, patch_width, units, "Z", cs, names,0)
+
+	assignBoundaryMaterial(oDesign,name,"Copper")
+
+
+	coax_name=name+"_feedline"
+	[excitation, coax_names]=coax_50_Ohm(oDesign, probe_x,probe_y,feedline_length,substrate_height,cs, coax_name)
+	#Subtract probe from Substrate, Ground plane, and antenna
+	binarySubtraction(oDesign, [name, substrate_name, GndName],coax_names[0],True)
+	binarySubtraction(oDesign,GndName,coax_names[1],True)
+	return excitation, [name, substrate_name, GndName]+coax_names
