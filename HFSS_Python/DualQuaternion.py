@@ -61,7 +61,7 @@ class DualQuaternion(object):
     """
     def dualQuat2Matrix(self):
         q = self
-        q = DualQuaternion.normalize(q)
+        # q = DualQuaternion.normalize(q)
 
         M = np.identity(4)
 
@@ -82,10 +82,10 @@ class DualQuaternion(object):
         M[1][2] = 2*y*z - 2*w*x
         M[2][2] = w*w + z*z - x*x - y*y
 
-        t = (q.m_dual*2.0) * qmath.conj(q.m_real)
-        M[0][3] = t[1]
-        M[1][3] = t[2]
-        M[2][3] = t[3]
+        t = qmath.quaternion((q.m_dual*2.0))# * qmath.conj(q.m_real))
+        M[0][3] = t[0]
+        M[1][3] = t[1]
+        M[2][3] = t[2]
 
         return M
 

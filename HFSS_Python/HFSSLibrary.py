@@ -1,5 +1,6 @@
 import win32com.client
 import numpy as np
+from DualQuaternion import *
 
 def openHFSS():
 
@@ -331,8 +332,34 @@ def binarySubtraction(oDesign, blank_parts, tool_parts, KeepOriginals):
 
 #This function will map a quaternion vector into cartesian space so it can be modeled in HFSS
 #Results in a Quaternion Coordinate System.
-def dualQuaternionCS(oDesign,):       
-	print('Quaternion')
+def dualQuaternionCS(oDesign,dq,units,name):
+	#Create DualQuaternion Object
+	# dq=DualQuaternion(rotation,translation)
+	print('dq',dq)
+	input('press enter')
+
+
+	full_translation_matrix=dq.dualQuat2Matrix()
+	print('4by4:\n',full_translation_matrix)
+	input('press enter')
+
+	total_rotation=full_translation_matrix[:-1,:-1]
+	print('total rotation\n',total_rotation)
+	input('press enter')
+
+	translation=full_translation_matrix[:-1,3]
+	print('translation\n',translation)
+	input('press enter')
+
+	x_axis = np.array([[1], [0], [0]])
+	y_axis = np.array([[0], [1], [0]])
+	x_axis = np.matmul(total_rotation,x_axis)
+	y_axis = np.matmul(total_rotation,y_axis)
+
+	[x, y, z] = translation[:]
+	print('x',x,'y',y,'z',z)
+	input('press enter')
+	createRelativeCS(oDesign,x,y,z,x_axis,y_axis,units,name)
 
 def createRelativeCS(oDesign, OriginX, OriginY, OriginZ, x_axis, y_axis, units, name):
 	XaxisXvec = x_axis[0]
@@ -395,6 +422,8 @@ def rotatedCS(oDesign, X, Y, Z, theta_x, theta_y, theta_z, units, name):
 
 	total_rotation = np.matmul(z_rotation,y_rotation)
 	total_rotation = np.matmul(total_rotation, x_rotation)
+
+	print('rotation matrix',total_rotation)
 
 	x_axis = np.array([[1], [0], [0]])
 	y_axis = np.array([[0], [1], [0]])
