@@ -335,21 +335,17 @@ def binarySubtraction(oDesign, blank_parts, tool_parts, KeepOriginals):
 def dualQuaternionCS(oDesign,dq,units,name):
 	#Create DualQuaternion Object
 	# dq=DualQuaternion(rotation,translation)
-	print('dq',dq)
-	input('press enter')
+	print('dq\n',dq)
 
 
 	full_translation_matrix=dq.dualQuat2Matrix()
 	print('4by4:\n',full_translation_matrix)
-	input('press enter')
 
 	total_rotation=full_translation_matrix[:-1,:-1]
 	print('total rotation\n',total_rotation)
-	input('press enter')
 
 	translation=full_translation_matrix[:-1,3]
 	print('translation\n',translation)
-	input('press enter')
 
 	x_axis = np.array([[1], [0], [0]])
 	y_axis = np.array([[0], [1], [0]])
@@ -358,7 +354,6 @@ def dualQuaternionCS(oDesign,dq,units,name):
 
 	[x, y, z] = translation[:]
 	print('x',x,'y',y,'z',z)
-	input('press enter')
 	createRelativeCS(oDesign,x,y,z,x_axis,y_axis,units,name)
 
 def createRelativeCS(oDesign, OriginX, OriginY, OriginZ, x_axis, y_axis, units, name):
