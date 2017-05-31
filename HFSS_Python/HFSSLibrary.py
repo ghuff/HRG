@@ -10,6 +10,235 @@ def openHFSS():
 	return [oAnsys, oDesktop]
 
 
+# Draw Polygon from corner points
+def drawPolygon(oDesign, coords, units, names, Transparency):
+	oEditor = oDesign.SetActiveEditor("3D Modeler")
+	polyline_parameters = ["NAME:PolylineParameters","IsPolylineCovered:=", True,
+		"IsPolylineClosed:="	, True]
+
+	polyline_points=["NAME:PolylinePoints"]
+	polyline_segments=["NAME:PolylineSegments"]
+
+
+	# End point is duplicated in coords, so need this loop before the polyline_points creator loop
+	for start_index in range(len(coords)):
+		polyline_segments.append(
+			[
+				"NAME:PLSegment",
+				"SegmentType:="		, "Line",
+				"StartIndex:="		, start_index,
+				"NoOfPoints:="		, 2
+			])
+
+
+	coords.append(coords[0])
+	for point in coords:
+		print(point)
+		xStr = '%f' % (point[0]) + units
+		yStr = '%f' % (point[1]) + units
+		zStr = '%f' % (point[2]) + units
+		polyline_points.append(["NAME:PLPoint","X:=", xStr,"Y:=", yStr,"Z:=", zStr])
+
+	polyline_parameters.append(polyline_points)
+	polyline_parameters.append(polyline_segments)
+	polyline_parameters.append([
+		"NAME:PolylineXSection",
+		"XSectionType:=", "None",
+		"XSectionOrient:=", "Auto",
+		"XSectionWidth:=", "0mm",
+		"XSectionTopWidth:=", "0mm",
+		"XSectionHeight:=", "0mm",
+		"XSectionNumSegments:=", "0",
+		"XSectionBendType:=", "Corner"
+	])
+
+
+	polyline_attributes = [
+		"NAME:Attributes",
+		"Name:="	, names,
+		"Flags:="		, "",
+		"Color:="		, "(132 132 193)",
+		"Transparency:="	, Transparency,
+		"PartCoordinateSystem:=", "Global",
+		"UDMId:="		, "",
+		"MaterialValue:="	, "\"vacuum\"",
+		"SolveInside:="		, True
+	]
+
+
+	oEditor.CreatePolyline([polyline_parameters],[polyline_attributes])
+	print(polyline_parameters)
+
+
+
+# draft_type can be "Round", "Extended", or "Normal"
+def sweep_along_vector(oDesign, sweep_vector, draft_angle, draft_type, units, object_selections):
+	oEditor = oDesign.SetActiveEditor("3D Modeler")
+
+	print(type(object_selections))
+	if type(object_selections) is str:
+		selections_string = object_selections
+	elif type(object_selections) is tuple:
+		selections_string = ""
+		for object in object_selections:
+			selections_string += object + ","
+		print("selections string",selections_string)
+	else:
+		raise TypeError
+
+
+	xStr = '%f' % (sweep_vector[0]) + units
+	yStr = '%f' % (sweep_vector[1]) + units
+	zStr = '%f' % (sweep_vector[2]) + units
+	draft_angle_str = '%fdeg' % draft_angle
+	oEditor.SweepAlongVector(
+	[
+		"NAME:Selections",
+		"Selections:="	, object_selections,
+		"NewPartsModelFlag:="	, "Model"
+	],
+	[
+		"NAME:VectorSweepParameters",
+		"DraftAngle:="		, draft_angle_str,
+		"DraftType:="		, draft_type,
+		"CheckFaceFaceIntersection:=", False,
+		"SweepVectorX:="	, xStr,
+		"SweepVectorY:="	, yStr,
+		"SweepVectorZ:="	, zStr
+	])
+
+#Move Function
+def move(oDesign, translation_vector, units, object_selections):
+	oEditor = oDesign.SetActiveEditor("3D Modeler")
+
+	print(type(object_selections))
+	if type(object_selections) is str:
+		selections_string = object_selections
+	elif type(object_selections) is tuple:
+		selections_string = ""
+		for object in object_selections:
+			selections_string += object + ","
+		print("selections string",selections_string)
+	else:
+		raise TypeError
+
+
+	xStr = '%f' % (translation_vector[0]) + units
+	yStr = '%f' % (translation_vector[1]) + units
+	zStr = '%f' % (translation_vector[2]) + units
+	oEditor.Move(
+	[
+		"NAME:Selections",
+		"Selections:="	, selections_string,
+		"NewPartsModelFlag:="	, "Model"
+	],
+	[
+		"NAME:TranslateParameters",
+		"TranslateVectorX:="	, xStr,
+		"TranslateVectorY:="	, yStr,
+		"TranslateVectorZ:="	, zStr
+	])
+
+
+#Move Function copying object and duplicating along line, Number of Clones telling how many copies along the line
+def duplicate_along_line(oDesign, move_vector, units, object_selections, num_clones):
+	oEditor = oDesign.SetActiveEditor("3D Modeler")
+
+	xStr = '%f' % (move_vector[0]) + units
+	yStr = '%f' % (move_vector[1]) + units
+	zStr = '%f' % (move_vector[2]) + units
+	oEditor.DuplicateAlongLine(
+		[
+			"NAME:Selections",
+			"Selections:=", object_selections,
+			"NewPartsModelFlag:=", "Model"
+		],
+		[
+			"NAME:DuplicateToAlongLineParameters",
+			"CreateNewObjects:=", True,
+			"XComponent:="	, xStr,
+			"YComponent:="		, yStr,
+			"ZComponent:="		, zStr,
+			"NumClones:="		, str(num_clones)
+		],
+		[
+			"NAME:Options",
+			"DuplicateAssignments:=", False
+		])
+
+
+
+#Unite
+def unite(oDesign, object_selections):
+	selections_string = ""
+	for object in object_selections:
+		selections_string += object + ","
+	print("selections string",selections_string)
+	oEditor = oDesign.SetActiveEditor("3D Modeler")
+	oEditor.Unite(
+		[
+			"NAME:Selections",
+			"Selections:="	, selections_string
+		],
+		[
+			"NAME:UniteParameters",
+			"KeepOriginals:="	, False
+		])
+
+#Rotate
+#rotate_axis = "X", "Y", or "Z"
+def rotate(oDesign, rotate_axis, rotate_angle, units, object_selections):
+
+	rotate_angle_str = '%f' %(rotate_angle) +units
+	oEditor = oDesign.SetActiveEditor("3D Modeler")
+	oEditor.Rotate(
+		[
+			"NAME:Selections",
+			"Selections:="	, object_selections,
+			"NewPartsModelFlag:="	, "Model"
+		],
+		[
+			"NAME:RotateParameters",
+			"RotateAxis:="		, rotate_axis,
+			"RotateAngle:="		, rotate_angle_str
+		])
+
+
+#Create Equation Curve
+def createEquationCurve(oDesign, Xfun, Yfun, Zfun, tStart, tEnd, numPoints, units):
+	oEditor = oDesign.SetActiveEditor("3D Modeler")
+	oEditor.createEquationCurve(
+		[
+			"NAME:EquationBasedCurveParameters",
+			"XtFunction:="	, Xfun,
+			"YtFunction:="		, Yfun,
+			"ZtFunction:="		, Zfun,
+			"tStart:="		, tStart,
+			"tEnd:="		, tEnd,
+			"NumOfPointsOnCurve:="	, numPoints,
+			"Version:="		, 1,
+			[
+				"NAME:PolylineXSection",
+				"XSectionType:="	, "None",
+				"XSectionOrient:="	, "Auto",
+				"XSectionWidth:="	, "0",
+				"XSectionTopWidth:="	, "0",
+				"XSectionHeight:="	, "0",
+				"XSectionNumSegments:="	, "0",
+				"XSectionBendType:="	, "Corner"
+			]
+		],
+		[
+			"NAME:Attributes",
+			"Name:="		, "EquationCurve1",
+			"Flags:="		, "",
+			"Color:="		, "(132 132 193)",
+			"Transparency:="	, 0,
+			"PartCoordinateSystem:=", "Global",
+			"UDMId:="		, "",
+			"MaterialValue:="	, "\"vacuum\"",
+			"SolveInside:="		, True
+		])
 #oEditor [object], start_coords,length,width [floats], axis, material, name [strings]
 #startpos=[start_x, start_y, start_z]
 def drawRectangle(oDesign, start_x, start_y, start_z, width, height, units, axis, cs, names, Transparency):
@@ -486,19 +715,21 @@ def assignFaceBoundaryMaterial(oDesign, Object_Name, FaceNo, material):
 		"InfGroundPlane:="	, False
 	])
 
-def insertSetup(oDesign, frequency,name):
+# Use frequency in Hertz
+def insertSetup(oDesign, solution_frequency,min_passes,min_converged_passes, max_passes, percent_refinement, name):
 	oModule = oDesign.GetModule("AnalysisSetup")
+	solution_frequency_str = '%f' % (solution_frequency) + 'Hz'
 	oModule.InsertSetup("HfssDriven",
 		[
 			"NAME:"+name,
-			"Frequency:="		, frequency,
+			"Frequency:="		, solution_frequency_str,
 			"PortsOnly:="		, False,
 			"MaxDeltaS:="		, 0.01,
 			"UseMatrixConv:="	, False,
-			"MaximumPasses:="	, 20,
-			"MinimumPasses:="	, 1,
-			"MinimumConvergedPasses:=", 1,
-			"PercentRefinement:="	, 30,
+			"MaximumPasses:="	, max_passes,
+			"MinimumPasses:="	, min_passes,
+			"MinimumConvergedPasses:=", min_converged_passes,
+			"PercentRefinement:="	, percent_refinement,
 			"IsEnabled:="		, True,
 			"BasisOrder:="		, 1,
 			"UseIterativeSolver:="	, False,
@@ -550,9 +781,11 @@ def LinearFrequencySweep(oDesign, startF, stopF, stepF,setup_name,name):
 
 
 #Boundary Object should be a sphere
-#Assigns Radiation boudnary to outer surface of sphere
+#Assigns Radiation boundary to outer surface of sphere
 def AssignRadiationBoundary(oDesign, boundary_object,name):
 	faces=getFaceIDs(oDesign, boundary_object)
+	print('sphere face list',faces)
+	# input('press enter to continue')
 	oModule=oDesign.GetModule("BoundarySetup")
 	oModule.AssignRadiation(
 		[
@@ -565,6 +798,28 @@ def AssignRadiationBoundary(oDesign, boundary_object,name):
 			"UseAdaptiveIE:="	, False,
 			"IncludeInPostproc:="	, True
 		])
+
+#Boundary Object should be a sphere
+#Assigns Radiation boundary to all faces of an object
+def RadiationBoundary(oDesign, boundary_object,name):
+	faces=getFaceIDs(oDesign, boundary_object)
+	print('sphere face list',faces)
+	# input('press enter to continue')
+	oModule=oDesign.GetModule("BoundarySetup")
+	faces
+	for i in range(len(faces)):
+		oModule.AssignRadiation(
+			[
+				"NAME:"+name,
+				"Faces:="		, [int(faces[i])],
+				"IsIncidentField:="	, False,
+				"IsEnforcedField:="	, False,
+				"IsFssReference:="	, False,
+				"IsForPML:="		, False,
+				"UseAdaptiveIE:="	, False,
+				"IncludeInPostproc:="	, True
+			])
+
 
 def getFaceIDs(oDesign,  name):
 	oEditor = oDesign.SetActiveEditor("3D Modeler")
@@ -659,8 +914,8 @@ def edit_sources(oDesign,source_list,modes_list,amplitudes_list, phase_list, amp
 	phase_str_list = []
 	modes_str_list = []
 	for i in range(0, len(source_list)):
-		amplitude_str_list +=['%f' %(amplitudes_list[i, 0]) + amplitude_units]
-		phase_str_list +=['%f' %(phase_list[i, 0]) +phase_units]
+		amplitude_str_list +=['%f' %(amplitudes_list[i]) + amplitude_units]
+		phase_str_list +=['%f' %(phase_list[i]) +phase_units]
 		modes_str_list +=['%d' %(modes_list[0,i])]
 
 	print("Amplitudes\n", amplitude_str_list, "\n\nPhases\n", phase_str_list,"\n\nModes\n", modes_str_list)
