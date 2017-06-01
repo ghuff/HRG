@@ -552,9 +552,10 @@ def edit_sources(oDesign,source_list,modes_list,amplitudes_list, phase_list, amp
 						["NAME:Terminated"],
 						["NAME:Impedances"], False, False)
 
-
+# Stores values in variables_list in corresponding variable name from names
+# Can also handle expressions passed to variables list.
+# Will sort variable storage so that variables defined in names can be used in expressions
 def name_handler(oDesign, variables_list, units ,names):
-	skip_indices = []
 	variable_strings = []
 	print('variables_list',variables_list)
 	indices = variable_ordering(variables_list,names)+[len(variables_list)]
@@ -573,7 +574,7 @@ def name_handler(oDesign, variables_list, units ,names):
 		else:
 			raise(ValueError)
 		variable_strings.append(variable_str)
-	# IF Name is a list of strings, this segment of code will stor
+	# If name is a list of strings, this segment of code will stor
 	# The values passed to this function in HFSS as local variables
 	# with the variable names specified
 	if not isinstance(names, str):
