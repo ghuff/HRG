@@ -245,32 +245,7 @@ def drawRectangle(oDesign, start_x, start_y, start_z, width, height, units, axis
 	#print("Creating " ,name)
 	oEditor = oDesign.SetActiveEditor("3D Modeler")
 
-	#HFSS Takes most arguments as strings: <value>+<"units"> e.g "42mil"
-	xStr = '%f' %(start_x) + units
-	yStr = '%f' %(start_y) + units
-	zStr = '%f' %(start_z) + units
-
-	wStr = '%f' %(width)   + units
-	hStr = '%f' %(height)  + units
-
-	#IF Name is a list of strings, this segment of code will stor
-	#The values passed to this function in HFSS as local variables
-	#with the variable names specified
-	if not isinstance(names,str):
-		values=[xStr, yStr, zStr, wStr, hStr, names[len(names)-1]]
-
-		if all(isinstance(element,str) for element in names):
-			if not(len(values)==len(names)):
-				raise ValueError('Names array must be of size %d'%(len(values)))
-			for i in range(0,len(values)):
-				values[i]=localVar(oDesign, names[i], values[i])
-
-		else:
-			raise TypeError('<names> must be string or array of strings')
-
-		[xStr, yStr, zStr, wStr, hStr, name]=values[:]
-	else:
-		name=names
+	[xStr, yStr, zStr, wStr, hStr, name] = name_handler(oDesign,[start_x, start_y, start_z, width, height],units,names)
 
 	#Use strings for HFSS Script CreateRectangle()
 	oEditor.CreateRectangle(
@@ -305,35 +280,9 @@ def drawBox(oDesign, start_x, start_y, start_z, Xsize, Ysize, Zsize, units, mate
 	#PEC is the only case I can think of where this would need to be false; Add other cases if needed
 	if(material == "pec"):
 		SolveInside=False
-
-	#HFSS Takes most arguments as strings: value is concatenated with units e.g "42mil"
-	xStr     = '%f' %(start_x) + units
-	yStr     = '%f' %(start_y) + units
-	zStr     = '%f' %(start_z) + units
-
-	XSizeStr = '%f' %(Xsize)   + units
-	YSizeStr = '%f' %(Ysize)   + units
-	ZSizeStr = '%f' %(Zsize)   + units
-
+	[xStr, yStr, zStr, XSizeStr, YSizeStr, ZSizeStr,name] = name_handler(oDesign, [start_x, start_y, start_z, Xsize, Ysize, Zsize], units,
+														names)
 	material = "\""+material+"\""
-
-	#IF Name is a list of strings, this segment of code will stor
-	#The values passed to this function in HFSS as local variables
-	#with the variable names specified
-	if not isinstance(names,str):
-		values=[xStr, yStr, zStr, XSizeStr, YSizeStr, ZSizeStr, names[len(names)-1]]
-		if all(isinstance(element,str) for element in names):
-			if not(len(values)==len(names)):
-				raise ValueError('Names array must be of size %d'%(len(values)))
-			for i in range(0,len(values)):
-				values[i]=localVar(oDesign, names[i], values[i])
-
-		else:
-			raise TypeError('<names> must be string or array of strings')
-
-		[xStr, yStr, zStr, XSizeStr, YSizeStr, ZSizeStr, name]=values[:]
-	else:
-		name=names
 
 	oEditor.CreateBox(
 		[
@@ -368,32 +317,10 @@ def drawCylinder(oDesign, center_x, center_y, center_z, radius, length, units, a
 	if(material == "pec"):
 		SolveInside=False
 
-	xStr     = '%f' %(center_x) + units
-	yStr     = '%f' %(center_y) + units
-	zStr     = '%f' %(center_z) + units
+	[xStr, yStr, zStr, radStr, lengthStr, name] = name_handler(oDesign,[center_x,center_y,center_z,radius,length],units,names)
 
-	radStr	 = '%f' %(radius)   + units
-	lengthStr= '%f' %(length)   + units
+
 	material = "\"" +material   + "\""
-
-	#IF Name is a list of strings, this segment of code will stor
-	#The values passed to this function in HFSS as local variables
-	#with the variable names specified
-	if not isinstance(names,str):
-		values=[xStr, yStr, zStr, radStr, lengthStr, names[len(names)-1]]
-
-		if all(isinstance(element,str) for element in names):
-			if not(len(values)==len(names)):
-				raise ValueError('Names array must be of size %d'%(len(values)))
-			for i in range(0,len(values)):
-				values[i]=localVar(oDesign, names[i], values[i])
-
-		else:
-			raise TypeError('<names> must be string or array of strings')
-
-		[xStr, yStr, zStr, radStr, lengthStr,  name]=values[:]
-	else:
-		name=names
 
 	oEditor.CreateCylinder(
 	[
@@ -423,30 +350,8 @@ def drawCircle(oDesign,  center_x, center_y, center_z, radius, units, axis,cs, n
 	#print("Creating " ,name)
 	oEditor  = oDesign.SetActiveEditor("3D Modeler")
 
-	xStr     = '%f' %(center_x) + units
-	yStr     = '%f' %(center_y) + units
-	zStr     = '%f' %(center_z) + units
-	radStr	 = '%f' %(radius)   + units
-
-	#IF Name is a list of strings, this segment of code will stor
-	#The values passed to this function in HFSS as local variables
-	#with the variable names specified
-	if not isinstance(names,str):
-		values=[xStr, yStr, zStr, radStr, names[len(names)-1]]
-
-		if all(isinstance(element,str) for element in names):
-			if not(len(values)==len(names)):
-				raise ValueError('Names array must be of size %d'%(len(values)))
-			for i in range(0,len(values)):
-				values[i]=localVar(oDesign, names[i], values[i])
-
-		else:
-			raise TypeError('<names> must be string or array of strings')
-
-		[xStr, yStr, zStr, radStr, name]=values[:]
-	else:
-		name=names
-
+	[xStr, yStr, zStr, radStr, name] = name_handler(oDesign, [center_x, center_y, center_z, radius],
+															   units, names)
 	oEditor.CreateCircle(
 	[
 		"NAME:CircleParameters",
@@ -478,31 +383,9 @@ def drawSphere(oDesign, center_x, center_y, center_z, radius, units, material, c
 	if(material == "pec"):
 		SolveInside=False
 
-	xStr     = '%f' %(center_x) + units
-	yStr     = '%f' %(center_y) + units
-	zStr     = '%f' %(center_z) + units
-
-	radStr	 = '%f' %(radius)   + units
+	[xStr, yStr, zStr, radStr, name] = name_handler(oDesign, [center_x, center_y, center_z, radius],
+															   units, names)
 	material = "\"" +material   + "\""
-
-	#IF Name is a list of strings, this segment of code will store
-	#The values passed to this function in HFSS as local variables
-	#with the variable names specified
-	if not isinstance(names,str):
-		values = [xStr, yStr, zStr, radStr, names[len(names)-1]]
-
-		if all(isinstance(element,str) for element in names):
-			if not(len(values) == len(names)):
-				raise ValueError('Names array must be of size %d'%(len(values)))
-			for i in range(0,len(values)):
-				values[i]=localVar(oDesign, names[i], values[i])
-
-		else:
-			raise TypeError('<names> must be string or array of strings')
-
-		[xStr, yStr, zStr, radStr, name]=values[:]
-	else:
-		name = names
 
 	oEditor.CreateSphere(
 	[
@@ -746,12 +629,8 @@ def insertSetup(oDesign, solution_frequency,min_passes,min_converged_passes, max
 			"SaveAnyFields:="	, True,
 			"NoAdditionalRefinementOnImport:=", False
 		])
-def LinearFrequencySweep(oDesign, startF, stopF, stepF,setup_name,name):
-	startFstr = '%f'  %(startF)  + "Hz"
-	stepFstr =  '%f'  %(stepF)   + "Hz"
-	stopFstr =  '%f'  %(stopF)   + "Hz"
-
-
+def LinearFrequencySweep(oDesign, startF, stopF, stepF,setup_name,names):
+	[startFstr,stepFstr,stopFstr, name] = name_handler(oDesign,[startF,stepF,stopF],"Hz",names)
 
 	oModule = oDesign.GetModule("AnalysisSetup")
 	oModule.InsertFrequencySweep(setup_name,
@@ -927,3 +806,83 @@ def edit_sources(oDesign,source_list,modes_list,amplitudes_list, phase_list, amp
 						["NAME:Phases"]+phase_str_list,
 						["NAME:Terminated"],
 						["NAME:Impedances"], False, False)
+
+# Stores values in variables_list in corresponding variable name from names
+# Can also handle expressions passed to variables list.
+# Will sort variable storage so that variables defined in names can be used in expressions
+def name_handler(oDesign, variables_list, units ,names):
+	variable_strings = []
+	print('variables_list',variables_list)
+	indices = variable_ordering(variables_list,names)+[len(variables_list)]
+	print(indices)
+	for variable in variables_list:
+		# If variable is an int or float, simply assign units to it
+		if isinstance(variable,int) or isinstance(variable,float):
+			variable_str = 	'%f' %(variable)   + units
+		# If variable is a string expression, pass directly to HFSS
+		elif isinstance(variable,str):
+			variable_str = variable
+			# Check expression for variable defined in names before
+			# assignment
+			# for name in names:
+			# 	if (name in variable_str):
+		else:
+			raise(ValueError)
+		variable_strings.append(variable_str)
+	# If name is a list of strings, this segment of code will stor
+	# The values passed to this function in HFSS as local variables
+	# with the variable names specified
+	if not isinstance(names, str):
+		values = variable_strings+[names[len(names) - 1]]
+		if all(isinstance(element, str) for element in names):
+			if not (len(values) == len(names)):
+				raise ValueError('Names array must be of size %d' % (len(values)))
+			for i in indices:
+				print(i)
+				values[i] = localVar(oDesign, names[i], values[i])
+		else:
+			raise TypeError('<names> must be string or array of strings')
+
+	else:
+		values = variable_strings + [names]
+	return values
+
+# Takes in variables list and names list, returns index order for storing
+# in HFSS to resolve any dependencies
+def variable_ordering(variables_list,names):
+	numerical_indices = []
+	independent_str_indices = []
+	dependent_str_indices = []
+	dependencies = []
+
+	for variable in variables_list:
+		index = variables_list.index(variable)
+		if isinstance(variable,int) or isinstance(variable,float):
+			numerical_indices.append(index)
+		elif isinstance(variable,str):
+			latest_dependency = -1
+
+			#Need to sort dependent strings by latest dependency
+			for name in names:
+				if name in variable:
+					latest_dependency = names.index(name)
+			if latest_dependency >= 0:
+				dependent_str_indices.append(index)
+				dependencies.append(latest_dependency)
+			else:
+				independent_str_indices.append(index)
+
+	print('dependend string index', dependent_str_indices)
+	print('dependencies', dependencies)
+
+	if len(dependencies)>1:
+		#Add weighting for sort to account for latest dependency
+		for i in range(len(dependencies)):
+			if dependencies[i] in dependent_str_indices:
+				dependencies[i] += dependencies[dependent_str_indices.index(dependencies[i])]
+
+		# Sort index list by latest dependency
+		dependencies , dependent_str_indices = (list(t) for t in zip(*sorted(zip(dependencies, dependent_str_indices))))
+
+	#Return index list in order of variable processing in HFSS
+	return numerical_indices + independent_str_indices + dependent_str_indices
