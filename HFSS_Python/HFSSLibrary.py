@@ -30,13 +30,11 @@ def drawPolygon(oDesign, coords, units, names, Transparency):
 				"NoOfPoints:="		, 2
 			])
 
-
+	name = ""
 	coords.append(coords[0])
 	for point in coords:
 		print(point)
-		xStr = '%f' % (point[0]) + units
-		yStr = '%f' % (point[1]) + units
-		zStr = '%f' % (point[2]) + units
+		[xStr,yStr,zStr,name]=name_handler(oDesign,point,units,names)
 		polyline_points.append(["NAME:PLPoint","X:=", xStr,"Y:=", yStr,"Z:=", zStr])
 
 	polyline_parameters.append(polyline_points)
@@ -55,7 +53,7 @@ def drawPolygon(oDesign, coords, units, names, Transparency):
 
 	polyline_attributes = [
 		"NAME:Attributes",
-		"Name:="	, names,
+		"Name:="	, name,
 		"Flags:="		, "",
 		"Color:="		, "(132 132 193)",
 		"Transparency:="	, Transparency,
@@ -144,29 +142,72 @@ def move(oDesign, translation_vector, units, object_selections):
 def duplicate_along_line(oDesign, move_vector, units, object_selections, num_clones):
 	oEditor = oDesign.SetActiveEditor("3D Modeler")
 
-	xStr = '%f' % (move_vector[0]) + units
-	yStr = '%f' % (move_vector[1]) + units
-	zStr = '%f' % (move_vector[2]) + units
-	oEditor.DuplicateAlongLine(
-		[
-			"NAME:Selections",
-			"Selections:=", object_selections,
-			"NewPartsModelFlag:=", "Model"
-		],
-		[
-			"NAME:DuplicateToAlongLineParameters",
-			"CreateNewObjects:=", True,
-			"XComponent:="	, xStr,
-			"YComponent:="		, yStr,
-			"ZComponent:="		, zStr,
-			"NumClones:="		, str(num_clones)
-		],
-		[
-			"NAME:Options",
-			"DuplicateAssignments:=", False
-		])
+	[xStr,yStr,zStr,name]=name_handler(oDesign,move_vector,units,'')
 
+	if isinstance(object_selections,str):
+		object_selections_str = object_selections
+		oEditor.DuplicateAlongLine(
+			[
+				"NAME:Selections",
+				"Selections:=", object_selections_str,
+				"NewPartsModelFlag:=", "Model"
+			],
+			[
+				"NAME:DuplicateToAlongLineParameters",
+				"CreateNewObjects:=", True,
+				"XComponent:="	, xStr,
+				"YComponent:="		, yStr,
+				"ZComponent:="		, zStr,
+				"NumClones:="		, str(num_clones)
+			],
+			[
+				"NAME:Options",
+				"DuplicateAssignments:=", False
+			])
+	else:
+		for object in object_selections:
+			object_selections_str=object
+			oEditor.DuplicateAlongLine(
+				[
+					"NAME:Selections",
+					"Selections:=", object_selections_str,
+					"NewPartsModelFlag:=", "Model"
+				],
+				[
+					"NAME:DuplicateToAlongLineParameters",
+					"CreateNewObjects:=", True,
+					"XComponent:=", xStr,
+					"YComponent:="	, yStr,
+					"ZComponent:="		, zStr,
+					"NumClones:="		, str(num_clones)
+				],
+				[
+					"NAME:Options",
+					"DuplicateAssignments:=", False
+				])
 
+	duplicated_objects = []
+	for i in range(1,num_clones):
+		extras = 0
+		if isinstance(object_selections,str):
+			new_name = object_selections+'_%d'%i
+			duplicated_objects.append(new_name)
+		else:
+			for object in object_selections:
+				new_name=object+'_%d'%i
+
+				while True:
+					if(new_name in object_selections or new_name in duplicated_objects):
+						print('new_name',new_name)
+						new_name = object+'_%d'%(i+extras)
+						extras += 1
+					else:
+						break
+				duplicated_objects.append(new_name)
+	if isinstance(object_selections,str):
+		return [object_selections]+duplicated_objects
+	else:
+		return object_selections + duplicated_objects
 
 #Unite
 def unite(oDesign, object_selections):
@@ -189,7 +230,7 @@ def unite(oDesign, object_selections):
 #rotate_axis = "X", "Y", or "Z"
 def rotate(oDesign, rotate_axis, rotate_angle, units, object_selections):
 
-	rotate_angle_str = '%f' %(rotate_angle) +units
+	[rotate_angle_str,name]=name_handler(oDesign,[rotate_angle],units,['theta_rotate',''])
 	oEditor = oDesign.SetActiveEditor("3D Modeler")
 	oEditor.Rotate(
 		[
@@ -813,27 +854,33 @@ def edit_sources(oDesign,source_list,modes_list,amplitudes_list, phase_list, amp
 def name_handler(oDesign, variables_list, units ,names):
 	variable_strings = []
 	print('variables_list',variables_list)
+	print('names',names)
 	indices = variable_ordering(variables_list,names)+[len(variables_list)]
 	print(indices)
-	for variable in variables_list:
-		# If variable is an int or float, simply assign units to it
-		if isinstance(variable,int) or isinstance(variable,float):
-			variable_str = 	'%f' %(variable)   + units
-		# If variable is a string expression, pass directly to HFSS
-		elif isinstance(variable,str):
-			variable_str = variable
-			# Check expression for variable defined in names before
-			# assignment
-			# for name in names:
-			# 	if (name in variable_str):
-		else:
-			raise(ValueError)
-		variable_strings.append(variable_str)
+	if isinstance(variables_list,str):
+		variable_strings=[variables_list]
+	else:
+		for variable in variables_list:
+			# If variable is an int or float, simply assign units to it
+			if isinstance(variable,int) or isinstance(variable,float):
+				variable_str = 	'%f' %(variable)   + units
+			# If variable is a string expression, pass directly to HFSS
+			elif isinstance(variable,str):
+				variable_str = variable
+				# Check expression for variable defined in names before
+				# assignment
+				# for name in names:
+				# 	if (name in variable_str):
+			else:
+				raise(TypeError('Variables must be int, float, or valid HFSS String Expression'))
+			variable_strings.append(variable_str)
 	# If name is a list of strings, this segment of code will stor
 	# The values passed to this function in HFSS as local variables
 	# with the variable names specified
+	print('variable strings',variable_strings)
 	if not isinstance(names, str):
 		values = variable_strings+[names[len(names) - 1]]
+		print(values)
 		if all(isinstance(element, str) for element in names):
 			if not (len(values) == len(names)):
 				raise ValueError('Names array must be of size %d' % (len(values)))
@@ -845,6 +892,7 @@ def name_handler(oDesign, variables_list, units ,names):
 
 	else:
 		values = variable_strings + [names]
+	print('values',values)
 	return values
 
 # Takes in variables list and names list, returns index order for storing
@@ -855,8 +903,8 @@ def variable_ordering(variables_list,names):
 	dependent_str_indices = []
 	dependencies = []
 
-	for variable in variables_list:
-		index = variables_list.index(variable)
+	for index in range(0,len(variables_list)):
+		variable=variables_list[index]
 		if isinstance(variable,int) or isinstance(variable,float):
 			numerical_indices.append(index)
 		elif isinstance(variable,str):
