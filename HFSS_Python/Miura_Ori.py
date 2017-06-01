@@ -176,17 +176,20 @@ rotate(oDesign, "Z", theta_rotate, "deg","airbox_1")
 #########################################################################################################
 
 #shift in vertical is 2x the XY component of the quadrant_1 point_2
-vertical_move = [2*a1*np.cos(alpha) ,0 ,0]
+vertical_move = [2*b1*np.cos(alpha/2) ,0 ,0]      ##this only works for flat state
 
-# vertical_move = ["2*b1*cos(alpha)" ,0 ,0]
+#vertical_move = ["2*b1*cos(alpha)" ,0 ,0]
 
-horizontal_move = [0, 2*a1*np.cos(gamma), 0]
+#horizontal_move = [0, 2*a1*np.cos(gamma) - 2*np.sin(beta), 0]
+
+horizontal_move = [0, 2*a1*np.cos(beta), 0]     ##this only works for flat state
 
 #horizontal_move = [0, "2*a1", 0]
 
-# duplicate_along_line(oDesign, vertical_move, "mm", "Quadrant_1,airbox_1",2)
+duplicate_along_line(oDesign, vertical_move, "mm", "Quadrant_1,airbox_1",2)
 
-# duplicate_along_line(oDesign, horizontal_move, "mm", "Quadrant_1,airbox_1",2)
+duplicate_along_line(oDesign, horizontal_move, "mm", "Quadrant_1,airbox_1, Quadrant_1_1, airbox_1_1",2)
+
 ##need to unite the unit cells and the respective airboxes
 ##GENERATE A LIST OF THE GENERATED AIRBOXES AND UNIT CELLS SO YOU CAN UNITE THEM
 
@@ -200,8 +203,8 @@ horizontal_move = [0, 2*a1*np.cos(gamma), 0]
 ##need to unite the unit cells and the respective airboxes
 
 #MAKE THESE LISTS WHEN YOU COPY THEM SO YOU CAN IMPORT DIRECTLY
-# unite(oDesign,("airbox_1","airbox_1_1"))
-# unite(oDesign,("Quadrant_1","Quadrant_1_1"))
+unite(oDesign,("airbox_1","airbox_1_1","airbox_1_2","airbox_1_1_1"))
+unite(oDesign,("Quadrant_1","Quadrant_1_1","Quadrant_1_2","Quadrant_1_1_1"))
 
 
 ######################################################################################################
@@ -209,5 +212,5 @@ horizontal_move = [0, 2*a1*np.cos(gamma), 0]
 ######################################################################################################
 
 #Edit > Scale
-yes = input("Type yes once the spiral has been copied into the file at point 0,0,0 and named 'Spiral' be sure to scale size by 0.6 in all directions")
+#yes = input("Type yes once the spiral has been copied into the file at point 0,0,0 and named 'Spiral' be sure to scale size by 0.6 in all directions")
 
