@@ -219,7 +219,7 @@ duplicate_airboxes=duplicate_along_line(oDesign, horizontal_move, "mm", "airbox_
 # unite(oDesign,duplicate_quadrants)
 
 duplicate_quad=duplicate_along_line(oDesign, vertical_move, "mm", duplicate_quadrants,2)
-duplicate_air=duplicate_along_line(oDesign, vertical_move, "mm", duplicate_airboxes,2)
+duplicate_air=duplicate_along_line(oDesign, vertical_move, "mm", duplicate_airboxes,2 )
 print('duplicate_quad',duplicate_quad)
 print('duplicate_air',duplicate_air)
 unite(oDesign,duplicate_air)
